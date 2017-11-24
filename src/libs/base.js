@@ -16,15 +16,15 @@ base.getAjaxData = function (url, callback) {
             xhr.setRequestHeader('X-UAId', Cookies.get('pms-X-UAId'));
         },
         success: function (e) {
-            // console.log(e);
             callback(e);
         }
     });
 };
 
-base.postAjaxData = function (url) {
+base.postAjaxData = function (url, para, callback) {
     $.ajax({
         url: url,
+        data: para,
         type: 'POST',
         beforeSend: function (xhr) {
             xhr.setRequestHeader('X-ss-id', Cookies.get('pms-ss-id'));
@@ -33,13 +33,15 @@ base.postAjaxData = function (url) {
             xhr.setRequestHeader('X-UAId', Cookies.get('pms-X-UAId'));
         },
         success: function (e) {
-            console.log(e);
-            console.log('提交成功');
+            callback(e);
+        },
+        error: function (er) {
+            callback(er);
         }
     });
 };
 
-base.putAjaxData = function (url) {
+base.putAjaxData = function (url, callback) {
     $.ajax({
         url: url,
         type: 'PUT',
@@ -52,11 +54,14 @@ base.putAjaxData = function (url) {
         success: function (e) {
             console.log(e);
             console.log('更新成功');
+            if (callback) {
+                callback(e);
+            }
         }
     });
 };
 
-base.deleteAjaxData = function (url) {
+base.deleteAjaxData = function (url, callback) {
     $.ajax({
         url: url,
         type: 'DELETE',
@@ -67,38 +72,37 @@ base.deleteAjaxData = function (url) {
             xhr.setRequestHeader('X-UAId', Cookies.get('pms-X-UAId'));
         },
         success: function (e) {
-            console.log(e);
-            console.log('删除成功');
+            if (callback) {
+                callback(e);
+            }
         }
     });
 };
 
-base.convert = function (source) {
-    var data = source.reduce(function (r, a) {
-        function getParent (s, b) {
-            return b.id === a.parentID ? b : (b.children && b.children.reduce(getParent, s));
+/**
+ * @param {String} url 地址
+ * @param {Object} para 参数
+ * @param {String} type 类型
+ * @param {Function} callback 回调函数
+ */
+base.ajaxData = function (url, para, type, callback) {
+    $.ajax({
+        url: base.baseURL + url,
+        data: para,
+        type: type,
+        beforeSend: function (xhr) {
+            xhr.setRequestHeader('X-ss-id', Cookies.get('pms-ss-id'));
+            xhr.setRequestHeader('X-ss-pid', Cookies.get('pms-ss-id'));
+            xhr.setRequestHeader('X-ss-opts', 'perm');
+            xhr.setRequestHeader('X-UAId', Cookies.get('pms-X-UAId'));
+        },
+        success: function (e) {
+            callback(e);
+        },
+        error: function (er) {
+            callback(er);
         }
-        let index = 0;
-        let node;
-        if ('parentID' in a) {
-            node = r.reduce(getParent, {});
-        }
-        if (node && Object.keys(node).length) {
-            node.children = node.children || [];
-            node.children.push(a);
-        } else {
-            while (index < r.length) {
-                if (r[index].parentID === a.id) {
-                    a.children = (a.children || []).concat(r.splice(index, 1));
-                } else {
-                    index++;
-                }
-            }
-            r.push(a);
-        }
-        return r;
-    }, []);
-    return data;
-}
+    });
+};
 
 export default base;
