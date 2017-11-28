@@ -105,4 +105,10 @@ base.ajaxData = function (url, para, type, callback) {
     });
 };
 
+base.randomNum = function (min, max) {
+    let range = max - min;
+    let rand = Math.random();
+    return (min + rand * range).toFixed(2);
+};
+
 export default base;

@@ -71,7 +71,7 @@
 		            	<label  for="for" style="display:inline-block; vertical-align: middle;width: 60px;text-align: right;">时间:</label>
 		            	<Date-picker type="daterange" placement="bottom-end" placeholder="选择日期" style="width:175px" @on-change='dateFormat'></Date-picker>
 		            </div> -->
-			        <div style="display: inline-block;">
+			        <div class="mystyle" style="display: inline-block;">
 			        	<i-button type="primary" icon="ios-search" @click="query()" >查询</i-button>
 		                <i-button type="primary" icon="social-dropbox-outline" @click="clearQuery()">清空</i-button>
 		                <i-button type="primary" icon="ios-upload">导出信息</i-button>

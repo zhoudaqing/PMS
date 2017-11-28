@@ -1,5 +1,5 @@
 <style lang="less" scoped>
-  @import '../deptm-set/deptm-set.less';
+  @import '../../page-common.less';
 </style>
 
 <template>
@@ -7,7 +7,7 @@
         <card class="margin-bottom-10">
             <Input v-model="value" placeholder="拼音检索" style="width: 175px" @on-change="check()" ></Input>
             <span style="color:#ccc;font-size:12px;"> * 只允许输入拼音首字母，如:gs 公司</span>
-            <i-button class="pull-right" type="primary" @click="modal1 = true" icon="plus">新增</i-button>
+            <i-button class="pull-right" type="primary" @click="addModal = true" icon="plus">新增</i-button>
         </card>
         <card class="margin-bottom-10">
             <Table class="margin-bottom-10" size="small"  border  style="min-height:400px;" :columns="columns" :data="data1"></Table>
@@ -16,14 +16,14 @@
             </div>
         </card>
         <!-- 新增模态框 -->
-        <Modal  v-model="modal1" icon="clipboard" :mask-closable="false" >
+        <Modal class="modal-common" v-model="addModal" icon="clipboard" :mask-closable="false" >
             <p slot="header" >
                 <Icon type="clipboard"></Icon>
                 <span>新增部分单位信息</span>
             </p>
             <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="120">
                 <FormItem label="分类" prop="Class_ID">
-                    <Select  v-model="formValidate.Class_ID" class="select" style="width: 300px">
+                    <Select  v-model="formValidate.Class_ID" class="select" style="width: 300px" :transfer="true">
                         <Option  v-for="item in data" :value="item.class_ID" :key="item.class_ID">{{ item.class_Value }}</Option>
                     </Select> {{formValidate.class_ID}}
                 </FormItem>
@@ -35,32 +35,32 @@
                 </FormItem>
             </Form>
             <div slot="footer">
-                <Button type="primary" @click="handleSubmit('formValidate')">保存</Button>
                 <Button type="ghost" @click="handleReset('formValidate')" style="margin-left: 8px">重置</Button>
+                <Button type="primary" @click="handleSubmit('formValidate')">保存</Button>
             </div>
         </Modal>
         <!-- 修改模态框 -->
-        <Modal  v-model="modalModify" :mask-closable="false">
+        <Modal class="modal-common" v-model="editModal" :mask-closable="false">
             <p slot="header" >
                 <Icon type="clipboard"></Icon>
                 <span>修改部门单位信息</span>
             </p>
-            <Form ref="formValidate" :model="formValidate" :rules="ruleValidate" :label-width="120">
+            <Form ref="indexData" :model="indexData" :rules="ruleValidate" :label-width="120">
                 <FormItem label="分类" prop="Class_ID">
-                    <Select  v-model="formValidate.Class_ID" class="select" style="width: 300px">
+                    <Select  v-model="indexData.Class_ID" class="select" style="width: 300px" :transfer="true">
                         <Option  v-for="item in data" :value="item.class_ID" :key="item.class_ID">{{ item.class_Value }}</Option>
-                    </Select> {{formValidate.class_ID}}
+                    </Select>
                 </FormItem>
                 <FormItem label="变量名称" prop="cmp_FName">
-                    <Input   :value="this.indexData.cmp_FName" placeholder="请输入公司全称" style="width: 300px"></Input>
+                    <Input   v-model="indexData.cmp_FName" placeholder="请输入公司全称" style="width: 300px"></Input>
                 </FormItem>
                 <FormItem label="变量值" prop="subClass_Value">
-                    <Input   :value="this.indexData.subClass_Value" placeholder="请输入公司简称" style="width: 300px"></Input>
+                    <Input   v-model="indexData.subClass_Value" placeholder="请输入公司简称" style="width: 300px"></Input>
                 </FormItem>
             </Form>
             <div slot="footer">
-                <Button type="primary" @click="handleSubmit('formValidate')">保存</Button>
-                <Button type="ghost" @click="handleReset('formValidate')" style="margin-left: 8px">重置</Button>
+                <Button type="ghost" @click="handleReset('indexData')" style="margin-left: 8px">重置</Button>
+                <Button type="primary" @click="amend('indexData')">保存</Button>
             </div>
         </Modal>
     </div>
@@ -72,8 +72,7 @@ import base from '@/libs/base';
 export default {
     data () {
         return {
-            modal1: false,               // 新增按钮--模态框
-            modal2: false,               // 修改按钮--模态框
+            addModal: false,             // 新增按钮--模态框
             options: '',                 // 用来存储查询函数的帅选字段
             data: [],                    // 第一个select下拉列表数据
             data1: [],                   // 表格数据
@@ -84,12 +83,12 @@ export default {
             value: '',                   // 拼音检索input的值    
             pageSize: 10,                // 每页的数据
             indexData: [],               // 删除模态框所用的表格行数据
-            modalModify: false,          // 修改按钮--模态框
+            editModal: false,            // 修改按钮--模态框
             columns: [                   // 表格表头/列信息
                 {type: 'selection', width: 60,align: 'center',width: 60},
                 {key: "id", title: "ID",align: 'center',width: 60},
                 {key: "cmp_FName", title: "变量名称",align: 'center',width:120},
-                {key: "subClass_Value", title: "变量值",align: 'center',},
+                {key: "subClass_Value", title: "变量值",align: 'center',width: 100},
                 {key: "pinyin", title: "拼音",align: 'center',width: 100 },
                 {key: "isEnable", title: "启用状态",align: 'center',width: 100,},
                 {title: '操作',align: 'center',width: 200,key: 'handle',
@@ -136,45 +135,54 @@ export default {
                     ],
                     subClass_Value: [
                         { required: true, message: '不能为空', trigger: 'blur' },
-                        { type: 'string', min: 5, message: 'Introduce no less than 20 words', trigger: 'blur' }
+                        // { type: 'string', min: 5, message: '不能少于五个字符', trigger: 'blur' }
                     ],
                     cmp_FName: [
                         { required: true, message: '不能为空', trigger: 'blur' },
-                        { type: 'string', min: 5, message: 'Introduce no less than 20 words', trigger: 'blur' }
+                        // { type: 'string', min: 5, message: '不能少于五个字符', trigger: 'blur' }
                     ],
                 }
             }
         },
         methods: {
             // 修改数据模态框---确认
-            amend (index) {
-                let amend_data = this.data1[index];
-                base.putAjaxData(base.baseURL + 'PublicApi/Bs_CommInfo',JSON.stringify(this.amend_data));
-                alert("提交成功")
+            amend (name) {
+                this.$refs[name].validate((valid) => {
+                    let _self = this;
+                    if (valid) {
+                        base.putAjaxData(base.baseURL + '/PublicApi/Bs_CommInfo',JSON.stringify(this.indexData),(e) =>{
+                            this.$Message.info('更新成功！');
+                            this.changePage(this.pageCurrent);
+                            this.editModal = false;
+                            this.$refs[name].resetFields();
+                        });
+                    } else {
+                        _self.$Message.error('保存失败');
+                    }
+                })
             },
             // 表格里面的单行修改模态框
             modify (index) {
                 console.log(this.data1[index]);
-                this.modalModify = true;
+                this.editModal = true;
                 this.indexData = this.data1[index];
             },
             // 表格里面单行删除
             remove (index) {
-                let  con=confirm("您即将删除这条信息,确认删除请按确定,否则请按取消!")
-                    if (con==true){
-                        let _self = this;
-                        base.deleteAjaxData(base.baseURL + 'PublicApi/Bs_CommInfo?ID=' + this.data1[index].id);
-                        // alert("删除成功,请刷新页面!")
-                        this.$Message.info({
-                            content: '删除成功',
-                            duration: 10,
-                            closable: true
-                            // onClose: alert("chenggong")
+                let _self = this;
+                this.$Modal.confirm({
+                    title: '提醒消息',
+                    content: '<p>确定删除这条吗？</p>',
+                    onOk: () => {
+                        this.$Message.info('删除成功！');
+                        base.deleteAjaxData(base.baseURL + 'PublicApi/Bs_CommInfo?ID=' + this.data1[index].id,(e)=>{
+                        this.changePage(this.pageCurrent)
                         });
-                     }
-                    else{
-                        alert("您取消了删除")
-                        }
+                    },
+                    onCancel: () => {
+                        this.$Message.info('您取消了删除');
+                    }
+                });  
             },
             // 查询函数
             check(skip,take){
@@ -183,7 +191,7 @@ export default {
                  if(this.value){
                     this.options = '&pinyinContains='+this.value;
                 }else{
-                     base.getAjaxData(base.baseURL + 'PublicApi/Bs_CommInfo?>Class_ID=109&orderBy=-PinYin&Skip=' + this.skip + '&take=' + this.take, (e) => {
+                     base.getAjaxData(base.baseURL + 'PublicApi/Bs_CommInfo_view?>Comm_ID=109&orderBy=-PinYin&Skip=' + this.skip + '&take=' + this.take, (e)=>{
                         _self.data1 = e.results;
                         _self.total = e.total;
                     })
@@ -191,7 +199,7 @@ export default {
                 if( skip == undefined ) skip = 0;                 
                 if( take == undefined ) take = this.pageSize;   
                 // console.log(base.baseURL + '/PublicApi/Bs_CommInfo?Skip=' + this.skip + '&take=' + this.take + this.options);
-                base.getAjaxData(base.baseURL + '/PublicApi/Bs_CommInfo?>Class_ID=109&orderBy=-PinYin&Skip=' + skip + '&take=' + take + this.options, (e)=>{
+                base.getAjaxData(base.baseURL + '/PublicApi/Bs_CommInfo_view?>Comm_ID=109&orderBy=-PinYin&Skip=' + skip + '&take=' + take + this.options, (e)=>{
                     _self.data1 = e.results;
                     _self.total = e.total;
                 })
@@ -216,11 +224,10 @@ export default {
                     if (valid) {
                         // console.log(this.formValidate)
                         base.postAjaxData(base.baseURL + '/PublicApi/Bs_CommInfo',JSON.stringify(this.formValidate));
-                        this.$Message.info({
-                            content: '登记保存成功,您可以继续登记下条记录,或者关闭登记窗口!',
-                            duration: 10,
-                            closable: true
-                        });
+                        this.$Message.success('登记保存成功');
+                        this.changePage(this.pageCurrent)
+                        this.addModal = false;
+                        this.$refs[name].resetFields();
                     } else {
                         this.$Message.error('保存失败');
                     }
@@ -233,24 +240,34 @@ export default {
             // 解锁
             lock(index){
                 let isEnable_status = this.data1[index].isEnable;
-                // console.log(this.data1[index].id);
+                let _self = this;
                 if(isEnable_status===1){
                      isEnable_status=2
-                     base.putAjaxData(base.baseURL + '/PublicApi/Bs_commisEableupd_view?IsEnable=' + isEnable_status + '&ID=' + this.data1[index].id);
-                    
+                     $.ajax({
+                        url: base.baseURL + '/PublicApi/Bs_commisEableupd_view?IsEnable=' + isEnable_status + '&ID=' + this.data1[index].id,
+                        type: 'put',
+                        success: function (e) {
+                              _self.changePage(_self.pageCurrent);
+                        }
+                    });
                 }else{
                     isEnable_status=1
-                    base.putAjaxData(base.baseURL + '/PublicApi/Bs_commisEableupd_view?IsEnable=' + isEnable_status + '&ID=' + this.data1[index].id);
+                    $.ajax({
+                        url: base.baseURL + '/PublicApi/Bs_commisEableupd_view?IsEnable=' + isEnable_status + '&ID=' + this.data1[index].id,
+                        type: 'put',
+                        success: function (e) {
+                            _self.changePage(_self.pageCurrent);
+                        }
+                    });
                 }
-                console.log(this.data1[index].id);
-                console.log(isEnable_status);
-            }
+             }
         },
+
         // 获取数据
         mounted () {
             // 表格获取的全部数据
             let _self = this;
-            base.getAjaxData(base.baseURL + 'PublicApi/Bs_CommInfo?>Class_ID=109&orderBy=-PinYin&Skip=' + this.skip + '&take=' + this.take, (e) => {
+            base.getAjaxData(base.baseURL + 'PublicApi/Bs_CommInfo_view?>Comm_ID=109&Skip=' + this.skip + '&take=' + this.take, (e) => {
                 _self.data1 = e.results;
                 _self.total = e.total;
             })
@@ -258,6 +275,15 @@ export default {
             base.getAjaxData(base.baseURL + '/PublicApi/Bs_ClassSet?>Class_ID=109', (e) => {
                 _self.data = e.results;
             });
+        },
+        watch: {
+            total: function(val) {
+                let num = this.pageSize*this.pageCurrent - 9;
+                if(num > val) {
+                    this.pageCurrent = this.pageCurrent - 1;
+                    this.check(this.pageCurrent*this.pageSize-10, this.pageSize)
+                }
+            }
         }
     }
 </script>

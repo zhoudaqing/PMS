@@ -65,20 +65,21 @@ export const otherRouter = {
 
 // 作为Main组件的子页面展示并且在左侧菜单显示的路由写在appRouter里
 export const appRouter = [
-    {
-        give: '案例展示',
-        path: '/demo',
-        icon: 'android-sad',
-        title: 'demo',
-        name: 'demo',
-        component: Main,
-        children: [
-            { path: 'index', title: '案例', name: 'demo_index', component: resolve => { require(['./views/demo/demo.vue'], resolve); } },
-            { path: 'table', title: '表格', name: 'table', component: resolve => { require(['./views/demo/table.vue'], resolve); } },
-            { path: 'tree', title: '树', name: 'tree', component: resolve => { require(['./views/demo/tree.vue'], resolve); } },
-            // { path: 'stepLog', title: 'stepLog', name: 'stepLog', component: resolve => { require(['./views/demo/stepLog.vue'], resolve); } }
-        ]
-    },
+    // {
+    //     give: '案例展示',
+    //     path: '/demo',
+    //     icon: 'android-sad',
+    //     title: 'demo',
+    //     name: 'demo',
+    //     component: Main,
+    //     children: [
+    //         { path: 'index', title: '案例', name: 'demo_index', component: resolve => { require(['./views/demo/demo.vue'], resolve); } },
+    //         { path: 'table', title: '表格', name: 'table', component: resolve => { require(['./views/demo/table.vue'], resolve); } },
+    //         { path: 'tree', title: '树', name: 'tree', component: resolve => { require(['./views/demo/tree.vue'], resolve); } },
+    //         { path: 'input_number', title: '数字输入框', name: 'input_number', component: resolve => { require(['./views/demo/inputNumber.vue'], resolve); } },
+    //         // { path: 'stepLog', title: 'stepLog', name: 'stepLog', component: resolve => { require(['./views/demo/stepLog.vue'], resolve); } }
+    //     ]
+    // },
     {
         give: '基础数据',
         path: '/goods_set',
@@ -87,7 +88,7 @@ export const appRouter = [
         name: 'goods_set',
         component: Main,
         children: [
-            { path: 'material_set', title: '原辅料设置', name: 'material_set' },
+            { path: 'material_set', title: '原辅料设置', name: 'material_set', component: resolve => { require(['./views/app/base-data/goods-set/material-set.vue'], resolve); } },
             { path: 'prod_set', title: '产品设置', name: 'prod_set', component: resolve => { require(['./views/app/base-data/goods-set/prod-set.vue'], resolve); } }
         ]
     },
@@ -121,7 +122,33 @@ export const appRouter = [
         name: 'material_mgmt',
         component: Main,
         children: [
-            { path: 'receive_record_mgmt', title: '原料到货记录管理', name: 'receive_record_mgmt', component: resolve => { require(['./views/app/material-center/record-mgmt/record-mgmt.vue'], resolve); } }
+            { path: 'receive_record_mgmt', title: '原料到货记录管理', name: 'receive_record_mgmt', component: resolve => { require(['./views/app/material-center/record-mgmt/record-mgmt.vue'], resolve); } },
+            { path: 'deliver_record_mgmt', title: '原料发货记录管理', name: 'deliver_record_mgmt', component: resolve => { require(['./views/app/material-center/record-mgmt/deliver-mgmt.vue'], resolve); } },
+            { path: 'store_record_mgmt', title: '原料入出库管理', name: 'store_record_mgmt', component: resolve => { require(['./views/app/material-center/record-mgmt/store-mgmt.vue'], resolve); } }
+        ]
+    },
+    {
+        give: '分厂管理',
+        path: '/first_factory',
+        icon: 'social-buffer',
+        title: '一分厂',
+        name: 'first_factory',
+        component: Main,
+        children: [
+            { path: 'storage_notice_mgmt', title: '入库通知书管理', name: 'storage_notice_mgmt', component: resolve => { require(['./views/app/factory-set/first-factory/storage-notice-mgmt.vue'], resolve); } },
+            { path: 'daily_data_mgmt', title: '日进度数据管理', name: 'daily_data_mgmt' }
+        ]
+    },
+    {
+        give: '技术质量',
+        path: '/tub_material_mgmt',
+        icon: 'beaker',
+        title: '油管原料管理',
+        name: 'tub_material_mgmt',
+        component: Main,
+        children: [
+            { path: 'tub_decide_mgmt', title: '油管判定管理', name: 'tub_decide_mgmt', component: resolve => { require(['./views/app/technical-quality/tub-material-mgmt/tub-decide-mgmt.vue'], resolve); } },
+            { path: 'waste_notice', title: '废品通知书', name: 'waste_notice' }
         ]
     },
     {
